@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import instructor
 from openai import OpenAI
 import os
+from prompts.prompts import *
 
 load_dotenv()
 
@@ -29,6 +30,7 @@ def extract_user_proposal_details(user_proposal: str) -> UserProposal:
         model="gpt-4-turbo-preview",
         response_model=UserProposal,
         messages=[
+            {"role": "system", "content": SystemPromptTemplate()},
             {"role": "user", "content": user_proposal},
         ],
     )
@@ -38,6 +40,7 @@ def generate_proposed_architecture(proposal: str) -> ProposedArchitecture:
         model="gpt-4-turbo-preview",
         response_model=ProposedArchitecture,
         messages=[
+            {"role": "system", "content": SystemPromptTemplate()},
             {"role": "user", "content": f"Write a detailed AI application architecture with all the tools required for the plan proposed: \n\n{proposal}"},
         ],
     )
@@ -47,6 +50,7 @@ def revise_architecture(proposed_architecture: str) -> PropositionWithRevision:
         model="gpt-4-turbo-preview",
         response_model=PropositionWithRevision,
         messages=[
+            {"role": "system", "content": SystemPromptTemplate()},
             {"role": "user", "content": f"Revise the plan proposed: \n\n{proposed_architecture}\n\nThe plan should be a step by step implementation of software solution."},
         ],
     )
@@ -76,7 +80,7 @@ async def main(message: cl.Message):
             content=f"Revised Architecture:\n{revised_architecture.revised_proposed_architecture}"
         ).send()
 
-        with open("output.md", "w") as output_file:
+        with open("outputs/output.md", "w") as output_file:
             output_file.write("# User Proposal\n")
             output_file.write(user_proposal_details.proposal + "\n\n")
             output_file.write("# Proposed Architecture\n")
