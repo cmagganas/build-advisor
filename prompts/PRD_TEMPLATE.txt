@@ -1,0 +1,73 @@
+### Product Requirements Document (PRD) for AI Applications
+
+#### Introduction
+- **Objective/Goal**: 
+  - Explain the purpose of the AI application and what it aims to achieve.
+  - Provide a high-level overview of the release purpose.
+  - User Proposal: {user_proposal}
+
+#### Features
+- **Feature 1**: 
+  - **Description**: Detailed description of the feature.
+  - **Goal**: What this feature aims to achieve.
+  - **Use Case**: Example of how a user would utilize this feature.
+  - **Additional Details**: Specifics such as out-of-scope items and prompt structure.
+  
+- **Feature 2**: 
+  - **Description**: Detailed description of the feature.
+  - **Goal**: What this feature aims to achieve.
+  - **Use Case**: Example of how a user would utilize this feature.
+  - **Additional Details**: Specifics such as out-of-scope items and prompt structure.
+
+*(Repeat for each feature)*
+
+#### UX Flow & Design Notes
+- **Overview**: General guidance required to ensure the release objectives are met.
+- **User Workflow**: Describe the overall user workflow.
+- **Design Considerations**: Any specific design notes relevant at this stage.
+
+#### System & Environment Requirements
+- **Supported Environments**: 
+  - Browsers (e.g., Chrome, Firefox, Safari)
+  - Operating Systems (e.g., Windows 10, macOS)
+  - Memory and Processing Power requirements
+
+#### Assumptions, Constraints & Dependencies
+- **Assumptions**: 
+  - List anything expected to be in place (e.g., all users will have Internet connectivity).
+  
+- **Constraints**: 
+  - Dictate limits for the implementation (e.g., budgetary constraints, technical limitations).
+  
+- **Dependencies**: 
+  - Conditions or items the product will rely on (e.g., relying on Google Maps for directions).
+
+#### Prompt Engineering Practices
+- **Ambiguity Mitigation**: Ensure clear, specific prompts to avoid ambiguous outputs. Evaluate prompts using examples and test consistency with different inputs.
+- **Versioning**: Track and version each prompt to monitor performance changes over time.
+- **Optimization**: Apply techniques like chain-of-thought prompting, majority voting, and breaking tasks into smaller prompts to improve output quality.
+- **Cost & Latency Management**: Balance detailed prompts with cost efficiency and manage latency by optimizing token usage.
+
+#### Task Composability
+- **Multiple Tasks Composition**: Outline how multiple tasks interact, including sequential and parallel executions, and control flows like if statements and loops.
+- **Agents and Tools**: Describe the use of agents to manage tasks and the integration of tools such as SQL executors and web browsers.
+- **Control Flows**: Detail the use of control flows in managing tasks, including sequential, parallel, if statements, and loops.
+
+#### Review & Approval Process
+- **Initial Review**: 
+  - Steps for internal product team review.
+  - Feedback incorporation.
+  
+- **Business Side Stakeholders Review**: 
+  - Process for aligning with business stakeholders.
+  
+- **Engineering Handoff**: 
+  - Clarifications and updates based on technical team feedback.
+  
+- **Final Approval**: 
+  - Ensuring no surprises later on.
+  - Agreement from all teams involved (UX design, engineering, QA).
+
+---
+
+This PRD template is configured specifically for the user proposal: "{user_proposal}", ensuring a consistent format for every PRD, covering all necessary aspects from features to dependencies, review processes, and incorporating best practices in prompt engineering and task composability.
