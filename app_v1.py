@@ -123,9 +123,6 @@ def format_template(template, **kwargs):
 
 # Define functions
 def llm_call(user_prompt, system_prompt=None):
-    print("Calling LLM...")  # Debug print
-    if system_prompt:
-        print("Using system prompt...")  # Debug print
 
     messages = [
         {"role": "user", "content": user_prompt}
@@ -134,35 +131,103 @@ def llm_call(user_prompt, system_prompt=None):
         {"role": "user", "content": user_prompt},
     ]
 
-    response = client.chat.completions.create(
+    return client.chat.completions.create(
         model="gpt-4-turbo-preview",
         response_model=None,
         messages=messages,
     )
-    print("LLM response received.")  # Debug print
-    return response
 
 # Define the Chainlit message handler
-@cl.on_message
-async def main(message: cl.Message):
+@cl.on_chat_start
+async def start():
 
-    print("Received message.")  # Debug print
-    user_proposal = message.content
+    # Welcome message
+    wel_msg = cl.Message(content="Welcome to Build Advisor!\n\nBuild Advisor creates plan, production requirement spec and implementation for your AI application idea.\nQuickly create a PoC so you can determine whether an idea is worth starting, worth investing time and/or money in.")
+    await wel_msg.send()
 
-    prd_sys1 = format_template(PRD_PROMPT_TEMPLATE, user_proposal=user_proposal)
-    prd_response_raw = llm_call(user_prompt=user_proposal, system_prompt=prd_sys1).choices[0].message.content
-    print("PRD response generated.")  # Debug print
+    # Ask user for AI application / business idea
+    res = await cl.AskUserMessage(content="What is your AI application/business idea?", timeout=30).send()
+    if res:
+        await wel_msg.remove()
+        # print(res['output'])
+        await cl.Message(
+            content=f"User Proposal: {res['output']}.\n\nStarting...",
+        ).send()
 
-    prd_json = json.dumps({"objective_goal": "Develop a chatbot...", "features": [], "ux_flow_design_notes": "...", "system_environment_requirements": "...", "assumptions": [], "constraints": [], "dependencies": [], "prompt_engineering_practices": "...", "task_composability": "...", "review_approval_process": "..."})
-    designer_prompt = format_template(DESIGNER_PROMPT_TEMPLATE, prd_response_raw=prd_response_raw, prd_json=prd_json, user_proposal=user_proposal)
-    designer_output = llm_call(designer_prompt).choices[0].message.content
-    print("Designer output received.")  # Debug print
+        user_proposal = res['output']
 
-    print("Sending messages to Chainlit UI...")  # Debug print
+        prd_sys1 = format_template(PRD_PROMPT_TEMPLATE, user_proposal=user_proposal) # system message to create PRD
+        prd_response_raw = llm_call(user_prompt=user_proposal, system_prompt=prd_sys1).choices[0].message.content # get PRD from LLM
 
-    await cl.Message(content=f"Generated PRD:\n{prd_response_raw}").send()
-    print("Generated PRD message sent.")  # Debug print
+        # send PRD output to UI
+        prd_msg = cl.Message(content=prd_response_raw)
+        await prd_msg.send()
 
-    await cl.Message(content=f"Designer Output:\n{designer_output}").send()
-    print("Designer output message sent.")  # Debug print
+        prd_json = json.dumps({"objective_goal": "Develop a chatbot...", "features": [], "ux_flow_design_notes": "...", "system_environment_requirements": "...", "assumptions": [], "constraints": [], "dependencies": [], "prompt_engineering_practices": "...", "task_composability": "...", "review_approval_process": "..."})
+        designer_prompt = format_template(DESIGNER_PROMPT_TEMPLATE, prd_response_raw=prd_response_raw, prd_json=prd_json, user_proposal=user_proposal)
+        designer_output = llm_call(designer_prompt).choices[0].message.content
 
+        designer_output_msg = cl.Message(content=designer_output)
+        await designer_output_msg.send()
+        # designer_output_msg.content = prd_msg.content + "\n###\n" + designer_output_msg.content
+
+        # update outputs in UI
+        for secs in [1,5,10,20]:
+            await cl.sleep(secs)
+            await prd_msg.update()
+            await designer_output_msg.update()
+
+
+####
+# TO DO:
+# - output message as download
+# - have follow up messages revise the original output or give feedback
+####
+
+
+# # on message just does the same but gets hung up...
+# @cl.on_message
+# async def main(message: cl.Message):
+
+#     print("Received message.")  # Debug print
+#     user_proposal = message.content
+
+#     llm_running = cl.Message(content="LLM running...")
+#     await llm_running.send()
+
+#     prd_sys1 = format_template(PRD_PROMPT_TEMPLATE, user_proposal=user_proposal) # system message to create PRD
+#     prd_response_raw = llm_call(user_prompt=user_proposal, system_prompt=prd_sys1).choices[0].message.content # get PRD from LLM
+
+#     # prd_sys1 = "temp sys message"
+#     # prd_response_raw = "temp prd message"
+#     # prd_response_raw = llm_call(user_prompt=user_proposal, system_prompt=prd_sys1).choices[0].message.content # get PRD from LLM
+
+#     # await llm_running.remove()
+
+#     # send PRD output to UI
+#     prd_sys_msg = cl.Message(content=f"prd_sys1: {prd_sys1}")
+#     # await prd_sys_msg.send()
+#     # await prd_sys_msg.remove()
+    
+#     # prd_msg = cl.Message(content=f"prd_response_raw: {prd_response_raw}")
+#     prd_msg = cl.Message(content=prd_response_raw)
+#     await prd_msg.send()
+#     # prd_msg = cl.Message(content=prd_response_raw)
+#     # await prd_msg.update()
+
+#     prd_json = json.dumps({"objective_goal": "Develop a chatbot...", "features": [], "ux_flow_design_notes": "...", "system_environment_requirements": "...", "assumptions": [], "constraints": [], "dependencies": [], "prompt_engineering_practices": "...", "task_composability": "...", "review_approval_process": "..."})
+#     designer_prompt = format_template(DESIGNER_PROMPT_TEMPLATE, prd_response_raw=prd_response_raw, prd_json=prd_json, user_proposal=user_proposal)
+#     designer_output = llm_call(designer_prompt).choices[0].message.content
+#     # print(designer_output)
+#     designer_output_msg = cl.Message(content=designer_output)
+#     await designer_output_msg.send()
+#     await cl.sleep(1)
+#     designer_output_msg.content = prd_msg.content + "\n###\n" + designer_output_msg.content
+#     await designer_output_msg.update()
+
+#     # print("Sending messages to Chainlit UI...")  # Debug print
+
+#     # await cl.Message(content=f"Generated PRD:\n{prd_response_raw}").send()
+
+# Load the starters
+import starters
