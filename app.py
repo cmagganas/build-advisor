@@ -221,7 +221,7 @@ def format_template(template, **kwargs):
 async def start():
 
     # Welcome message
-    wel_msg = cl.Message(content="Welcome to Build Advisor!\n\nBuild Advisor creates plan, production requirement spec and implementation for your AI application idea.\nQuickly create a PoC so you can determine whether an idea is worth starting, worth investing time and/or money in.")
+    wel_msg = cl.Message(content="Welcome to Build Advisor!\n\nBuild Advisor creates a plan, prod req spec and implementation for you.\nQuickly create a PoC so you can determine whether an idea is \n1. worth starting\n2. worth investing time \n3. worth investing money")
     await wel_msg.send()
 
     # Ask user for AI application / business idea
