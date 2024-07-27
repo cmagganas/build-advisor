@@ -1,14 +1,25 @@
-# Welcome to Chainlit! 🚀🤖
+# How to Prompt
 
-Hi there, Developer! 👋 We're excited to have you on board. Chainlit is a powerful tool designed to help you prototype, debug and share applications built on top of LLMs.
+## Welcome to Build Advisor!
 
-## Useful Links 🔗
+Build Advisor creates a plan, product requirement specification, and implementation for you. Quickly create a Proof of Concept (PoC) so you can determine whether an idea is:
 
-- **Documentation:** Get started with our comprehensive [Chainlit Documentation](https://docs.chainlit.io) 📚
-- **Discord Community:** Join our friendly [Chainlit Discord](https://discord.gg/k73SQ3FyUh) to ask questions, share your projects, and connect with other developers! 💬
+- Worth starting
+- Worth investing time
+- Worth investing money
 
-We can't wait to see what you create with Chainlit! Happy coding! 💻😊
+### What is your AI application/business idea?
 
-## Welcome screen
+For example:
+"I want to create a portfolio chatbot that answers questions about my experience and qualifications for a role that I might be applying to."
 
-To modify the welcome screen, edit the `chainlit.md` file at the root of your project. If you do not want a welcome screen, just leave this file empty.
+### Steps to Use Build Advisor
+
+- **Define Your Idea:**
+  - Clearly articulate your AI application or business idea.
+  - Example: "I want to create a portfolio chatbot..."
+
+**DISCLAIMER**
+You will need to start a new chat for each idea in this first version (v1).
+
+By following these steps, you can efficiently develop and validate your AI ideas with Build Advisor. Happy building! 🚀😊
