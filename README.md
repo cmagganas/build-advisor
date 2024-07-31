@@ -32,7 +32,7 @@ Build Advisor is an AI app designed to help guide AI developers in building thei
 - **Deploy on HF spaces:** Make your project accessible on Hugging Face spaces.
 - **Landing Page Intro:** Include an introduction: "I am... I do... how to use me..."
 
-#### Week 2 (W2)
+#### Version 2 (v2)
 
 - **Work with SME:** Get a few-shot examples (3+) for each agent:
   - Definition agent
