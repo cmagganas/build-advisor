@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import json
 from openai import OpenAI, AsyncOpenAI
 import os
+import chainlit.data as cl_data
 
 load_dotenv()
 
@@ -11,18 +12,43 @@ load_dotenv()
 client = AsyncOpenAI(api_key=os.environ['OPENAI_API_KEY'])
 
 async def llm_call(user_prompt, system_prompt=None):
-    # sourcery skip: inline-immediately-returned-variable
     chat_completion = await client.chat.completions.create(
-      messages = [
-          {"role": "user", "content": user_prompt}
-      ] if system_prompt is None else [
-          {"role": "system", "content": system_prompt},
-          {"role": "user", "content": user_prompt},
-      ],
-      model="gpt-4o-mini"
+        messages=[
+            {"role": "user", "content": user_prompt}
+        ] if system_prompt is None else [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        model="gpt-4o-mini"
     )
     return chat_completion
 
+class CustomDataLayer(cl_data.BaseDataLayer):
+ 
+    async def upsert_feedback(self, feedback: cl_data.Feedback) -> str:
+        # sourcery skip: assign-if-exp, do-not-use-bare-except
+        filename = "results.json"
+        with open(filename,"r") as file:
+            try:
+                existing_data = json.load(file)
+            except json.JSONDecodeError:
+                existing_data = []
+        for data in existing_data:
+            # print(data)
+            try:
+                if data['id']==feedback.forId:
+                    data['feedback']=feedback.comment
+                    if feedback.value==0:
+                        data['positiveORnegative']="Negative"
+                    else:
+                        data['positiveORnegative']="Positive"
+            except:
+                pass
+        with open(filename, "w") as file:
+            json.dump(existing_data, file, indent=4)
+ 
+ 
+cl_data._data_layer=CustomDataLayer()
 
 # Define prompt templates
 PRD_PROMPT_TEMPLATE = """
@@ -211,87 +237,63 @@ PRD_JSON_TEMPLATE = json.dumps({
     }
 })
 
-
-# Function to format the templates with provided variables
 def format_template(template, **kwargs):
     return template.format(**kwargs)
 
-
-# Define the Chainlit message handler
 @cl.on_chat_start
 async def start():
-
-    # Welcome message
     wel_msg = cl.Message(content="Welcome to Build Advisor!\n\nBuild Advisor creates a plan, prod req spec and implementation for you.\nQuickly create a PoC so you can determine whether an idea is \n1. worth starting\n2. worth investing time \n3. worth investing money")
     await wel_msg.send()
 
-    # Ask user for AI application / business idea
     res = await cl.AskUserMessage(content="What is your AI application/business idea?", timeout=30).send()
     if res:
         await wel_msg.remove()
-        await cl.Message(
-            content=f"User Proposal: {res['output']}.\n\nStarting...",
-        ).send()
+        await cl.Message(content=f"User Proposal: {res['output']}.\n\nStarting...").send()
 
         user_proposal = res['output']
 
-        # populate the PRD template
         prd_sys1 = format_template(PRD_PROMPT_TEMPLATE, user_proposal=user_proposal)
-
-        # call the PRD agent
         prd_response = await llm_call(user_prompt=user_proposal, system_prompt=prd_sys1)
-        prd_response_raw = prd_response.choices[0].message.content # get PRD from LLM
+        prd_response_raw = prd_response.choices[0].message.content
 
-        # send PRD output to UI
         prd_msg = cl.Message(content=prd_response_raw)
         await prd_msg.send()
-        
-        # populate the designer template
+
         designer_prompt = format_template(DESIGNER_PROMPT_TEMPLATE, prd_response_raw=prd_response_raw, prd_json=PRD_JSON_TEMPLATE, user_proposal=user_proposal)
-        
-        # call the designer agent
         designer_response = await llm_call(designer_prompt)
         designer_output = designer_response.choices[0].message.content
-        
-        # send designer output to UI
+
         designer_output_msg = cl.Message(content=designer_output)
         await designer_output_msg.send()
 
-        # update messages
         await prd_msg.update()
         await designer_output_msg.update()
 
-        # Save Chat History
-        save_dump = {
-          "user_proposal": user_proposal,
-          "prd_response_raw": prd_response_raw,
-          "designer_output": designer_output,
-        }
-
-        # Get the current timestamp
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-
-        # Create a dictionary to store the timestamp
-        save_dump = {
-            "timestamp": timestamp,
-            "user_proposal": user_proposal,
-            "prd_response_raw": prd_response_raw,
-            "designer_output": designer_output,
-        }
-
-        # Define the filename
-        filename = f"outputs/chat-history-{timestamp}.json"
-
-        # Save the dictionary as a JSON file
-        with open(filename, "w") as json_file:
-            json.dump(save_dump, json_file)
-
-        print(f"Timestamp saved to {filename}")
+        cl.user_session.set("user_proposal", user_proposal)
+        cl.user_session.set("prd_response_raw", prd_response_raw)
+        cl.user_session.set("designer_output", designer_output)
 
 
-####
-# TO DO:
-# ⭐⭐⭐⭐⭐ output message as download
-# ⭐⭐⭐      have follow up messages revise the original output or give feedback
-# ⭐⭐⭐      have starter message for users who don't have an idea yet
-####
+@cl.on_chat_end
+async def end():
+
+  user_proposal = cl.user_session.get("user_proposal")
+  prd_response_raw = cl.user_session.get("prd_response_raw")
+  designer_output = cl.user_session.get("designer_output")
+
+
+
+  timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+  save_dump = {
+      "user_proposal": user_proposal,
+      "prd_response_raw": prd_response_raw,
+      "designer_output": designer_output,
+      "timestamp": timestamp
+  }
+  filename = f"outputs/chat-history-{timestamp}.json"
+
+  with open(filename, "w") as json_file:
+      json.dump(save_dump, json_file)
+
+  print(f"Timestamp saved to {filename}")
+
